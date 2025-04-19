@@ -1,0 +1,18 @@
+.env
+node_modules
+uploads
+jest.config.js
+package-lock.json
+yarn.lock
+
+# logs
+combined.log
+error.log
+info.log
+warn.log
+
+# jest
+jest.config.js
+
+
+db

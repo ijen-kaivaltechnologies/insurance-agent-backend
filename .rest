@@ -1,0 +1,337 @@
+### Insurance Clients Management API Tests
+@baseUrl = http://localhost:3000/api
+@authToken = 
+
+### Authentication
+
+# Register a new user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "password123",
+  "phone": "9876543210"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+
+### Save the auth token from the login response
+@authToken = {{login.response.body.token}}
+
+### Client Management
+
+# Create a new client
+# @name createClient
+POST {{baseUrl}}/clients
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "gender": "female",
+  "dob": "1985-05-15",
+  "age": 38,
+  "height": 165.5,
+  "weight": 62.5,
+  "education": "Bachelor's Degree",
+  "birth_place": "Mumbai",
+  "business_job_name": "Software Developer",
+  "type_of_duty": "Office Work",
+  "anual_income": 1200000,
+  "pan_no": "ABCDE1234F",
+  "marital_status": "married",
+  "phone": "8765432109",
+  "email": "jane.smith@example.com",
+  "address": "123 Main St, Mumbai, Maharashtra",
+  "additional_info": "Prefers communication via email"
+}
+
+### Save client ID from the create response
+@clientId = {{createClient.response.body.data.id}}
+
+### Get all clients
+GET {{baseUrl}}/clients
+Authorization: Bearer {{authToken}}
+
+### Get all clients with search
+GET {{baseUrl}}/clients?search=Jane
+Authorization: Bearer {{authToken}}
+
+### Get client by ID
+GET {{baseUrl}}/clients/{{clientId}}
+Authorization: Bearer {{authToken}}
+
+### Update client
+PUT {{baseUrl}}/clients/{{clientId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "first_name": "Jane",
+  "last_name": "Smith-Johnson",
+  "phone": "8765432109",
+  "email": "jane.updated@example.com",
+  "additional_info": "Prefers communication via phone"
+}
+
+### Create a new client with documents
+# Note: This request is for reference only. For actual testing, use Postman or Insomnia
+# as .rest files have limited support for multipart/form-data with file uploads
+
+# Example curl command for client creation with documents:
+# curl -X POST {{baseUrl}}/clients \
+#   -H "Authorization: Bearer {{authToken}}" \
+#   -F "first_name=John" \
+#   -F "last_name=Doe" \
+#   -F "gender=male" \
+#   -F "dob=1990-01-01" \
+#   -F "phone=9876543210" \
+#   -F "email=john.doe@example.com" \
+#   -F "adhar_card=@/path/to/adhar_card.pdf" \
+#   -F "pan_card=@/path/to/pan_card.pdf" \
+#   -F "driving_licence=@/path/to/driving_license.pdf" \
+#   -F "mediclaim=@/path/to/mediclaim.pdf" \
+#   -F "rc_book=@/path/to/rc_book.pdf" \
+#   -F "other_file=@/path/to/other_document.pdf"
+
+### Sample client creation with documents request structure (for reference)
+POST {{baseUrl}}/clients
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="first_name"
+
+John
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="last_name"
+
+Doe
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="gender"
+
+male
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="dob"
+
+1990-01-01
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="phone"
+
+9876543210
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="email"
+
+john.doe@example.com
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="adhar_card"; filename="adhar_card.pdf"
+Content-Type: application/pdf
+
+< ./path/to/adhar_card.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="pan_card"; filename="pan_card.pdf"
+Content-Type: application/pdf
+
+< ./path/to/pan_card.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Note: All document fields are optional. You can include any combination of:
+# - adhar_card
+# - pan_card
+# - driving_licence
+# - mediclaim
+# - rc_book
+# - other_file
+
+### Client Document Management
+
+# Add document to client
+# @name addDocument
+POST {{baseUrl}}/clients/{{clientId}}/documents
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "document_type": "identity_proof",
+  "document_name": "Aadhar Card",
+  "document_url": "https://example.com/storage/documents/aadhar_card.pdf"
+}
+
+### Save document ID from the add document response
+@documentId = {{addDocument.response.body.data.id}}
+
+### Upload multiple documents for a client
+# Note: This request is for reference only. For actual testing, use Postman or Insomnia
+# as .rest files have limited support for multipart/form-data with file uploads
+
+# Example curl command for multiple document upload:
+# curl -X POST {{baseUrl}}/clients/{{clientId}}/documents/upload \
+#   -H "Authorization: Bearer {{authToken}}" \
+#   -F "document_type=adhar card" \
+#   -F "document_name=Client Documents" \
+#   -F "document=@/path/to/adhar_card.pdf" \
+#   -F "document=@/path/to/pan_card.pdf"
+
+### Sample document upload request structure (for reference)
+POST {{baseUrl}}/clients/{{clientId}}/documents/upload
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+adhar card
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_name"
+
+Adhar Card
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document"; filename="adhar_card.pdf"
+Content-Type: application/pdf
+
+< ./path/to/adhar_card.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### List of allowed document types for reference:
+# - adhar card
+# - pan card
+# - driving license
+# - mediclaim
+# - rc book
+# - other
+
+### Get client documents
+GET {{baseUrl}}/clients/{{clientId}}/documents
+Authorization: Bearer {{authToken}}
+
+### Delete a client document
+DELETE {{baseUrl}}/clients/{{clientId}}/documents/{{documentId}}
+Authorization: Bearer {{authToken}}
+
+### Create a new policy with vehicle type
+POST {{baseUrl}}/policies
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "client_id": "{{clientId}}",
+  "user_id": "1",
+  "policy_type_id": "1",
+  "insured_name": "Jane Smith",
+  "sum_insured": 1000000,
+  "policy_num": "POL123456",
+  "start_date": "2025-04-19",
+  "end_date": "2026-04-18",
+  "term_year": 1,
+  "premium_pay_term": 1,
+  "plan_name": "Vehicle Insurance",
+  "payment_mode": "annual",
+  "insurance_company_name": "ABC Insurance",
+  "policy_type": "vehicle",
+  "net_primium": 25000,
+  "gst_percent": 18,
+  "total_premium": 29500,
+  "vehicle_type": "4-wheeler",
+  "note": "Vehicle insurance policy"
+}
+
+### Login to get token
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "yourpassword"
+}
+
+### Store the token from the response above
+@authToken = your_token_here
+
+### Get all clients
+GET http://localhost:3000/api/clients
+Authorization: Bearer {{authToken}}
+
+### Get a specific client
+GET http://localhost:3000/api/clients/client_id_here
+Authorization: Bearer {{authToken}}
+
+### Create a new client
+POST http://localhost:3000/api/clients
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "gender": "male",
+  "dob": "1990-01-01",
+  "phone": "9876543210",
+  "email": "john.doe@example.com"
+}
+
+### Upload documents for a client
+# Note: This request must be sent using a tool like Postman or Insomnia
+# as .rest files don't support multipart/form-data with file uploads
+# Below is the equivalent curl command:
+
+# curl -X POST http://localhost:3000/api/clients/client_id_here/documents/upload \
+#   -H "Authorization: Bearer your_token_here" \
+#   -F "document_type=adhar card" \
+#   -F "document_name=Adhar Card" \
+#   -F "document=@/path/to/adhar_card.pdf"
+
+### Sample document upload request structure
+POST http://localhost:3000/api/clients/client_id_here/documents/upload
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+adhar card
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_name"
+
+Adhar Card
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document"; filename="adhar_card.pdf"
+Content-Type: application/pdf
+
+< ./path/to/adhar_card.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Upload multiple documents example (for reference - use Postman/Insomnia for actual testing)
+# In Postman/Insomnia, you would add multiple files with the same field name "document"
+# Example curl command:
+# curl -X POST http://localhost:3000/api/clients/client_id_here/documents/upload \
+#   -H "Authorization: Bearer your_token_here" \
+#   -F "document_type=adhar card" \
+#   -F "document=@/path/to/adhar_card.pdf" \
+#   -F "document=@/path/to/second_document.pdf"
+
+### List of allowed document types for reference:
+# - adhar card
+# - pan card
+# - driving license
+# - mediclaim
+# - rc book
+# - other
+
+### Get client documents
+GET http://localhost:3000/api/clients/client_id_here/documents
+Authorization: Bearer {{authToken}}
+
+### Delete a client document
+DELETE http://localhost:3000/api/clients/client_id_here/documents/document_id_here
+Authorization: Bearer {{authToken}}

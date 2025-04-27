@@ -50,7 +50,6 @@ const createPolicy = async (req, res, next) => {
       total_premium: req.body.total_premium ? parseFloat(req.body.total_premium) : null,
       refer_name: req.body.refer_name,
       note: req.body.note,
-      
       // Rider information
       term_rider_amount: req.body.term_rider_amount ? parseFloat(req.body.term_rider_amount) : null,
       term_rider_note: req.body.term_rider_note,
@@ -61,7 +60,20 @@ const createPolicy = async (req, res, next) => {
       pwb_rider_amount: req.body.pwb_rider_amount ? parseFloat(req.body.pwb_rider_amount) : null,
       pwb_rider_note: req.body.pwb_rider_note,
       other_rider_amount: req.body.other_rider_amount ? parseFloat(req.body.other_rider_amount) : null,
-      other_rider_note: req.body.other_rider_note
+      other_rider_note: req.body.other_rider_note,
+      // New vehicle and insurance fields
+      registration_rto: req.body.registration_rto,
+      vehicle_type: req.body.vehicle_type,
+      engine_number: req.body.engine_number,
+      chassis_number: req.body.chassis_number,
+      vehical_class: req.body.vehical_class,
+      insurance_type: req.body.insurance_type,
+      tp_premium: req.body.tp_premium ? parseFloat(req.body.tp_premium) : null,
+      gst_amount: req.body.gst_amount ? parseFloat(req.body.gst_amount) : null,
+      cng_value: req.body.cng_value ? parseFloat(req.body.cng_value) : null,
+      manufacture_year: req.body.manufacture_year ? parseInt(req.body.manufacture_year) : null,
+      ncb: req.body.ncb ? parseFloat(req.body.ncb) : null,
+      model_variant: req.body.model_variant
     };
 
     // Handle file uploads

@@ -49,7 +49,19 @@ class Policy {
       pwb_rider_amount,
       pwb_rider_note,
       other_rider_amount,
-      other_rider_note
+      other_rider_note,
+      registration_rto,
+      vehicle_type,
+      engine_number,
+      chassis_number,
+      vehical_class,
+      insurance_type,
+      tp_premium,
+      gst_amount,
+      cng_value,
+      manufacture_year,
+      ncb,
+      model_variant,
     } = policyData;
 
     const query = `
@@ -76,6 +88,7 @@ class Policy {
       plan_name, payment_mode, insurance_company_name, policy_type,
       net_primium, gst_percent, gst_2nd_year_percent, gst_3rd_year_percent,
       total_premium, policy_doc_path, refer_name, note,
+      registration_rto, vehicle_type, engine_number, chassis_number, vehical_class, insurance_type, tp_premium, gst_amount, cng_value, manufacture_year, ncb, model_variant, 
       adhar_card, pan_card, driving_licence, mediclaim, rc_book, other_file,
       term_rider_amount, term_rider_note, critical_rider_amount, critical_rider_note,
       accident_rider_amount, accident_rider_note, pwb_rider_amount, pwb_rider_note,

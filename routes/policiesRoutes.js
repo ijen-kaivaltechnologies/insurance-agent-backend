@@ -4,6 +4,7 @@ const { body, param, validationResult } = require('express-validator');
 const Policy = require('../models/policies');
 const auth = require('../middleware/auth');
 const upload = require("../utils/fileUpload");
+const policyController = require('../controllers/policyController'); // Assuming policyController is defined in this file
 
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
@@ -127,6 +128,13 @@ router.delete('/:id',
       res.status(500).json({ error: error.message });
     }
   }
+);
+
+// Import policies from CSV
+router.post('/import-csv',
+  auth,
+  upload.single('csv'),
+  policyController.importPoliciesFromCsv
 );
 
 module.exports = router;

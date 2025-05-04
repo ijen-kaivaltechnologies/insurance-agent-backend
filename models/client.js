@@ -356,10 +356,30 @@ class Client {
     return result.rows;
   }
 
+  /**
+   * Check if client with same email or phone exists for a user
+   * @param {string} email - Client email
+   * @param {string} phone - Client phone
+   * @param {string} userId - User ID
+   * @returns {Promise<Object|null>} - Existing client or null
+   */
+  static async checkDuplicate(email, phone, userId) {
+    const query = `
+      SELECT *
+      FROM clients
+      WHERE user_id = $1 
+      AND (email = $2 OR phone = $3)
+    `;
+    
+    const result = await db.query(query, [userId, email, phone]);
+    return result.rows[0] || null;
+  }
+
   static async exists({ where }) {
-    const query = 'SELECT EXISTS (SELECT 1 FROM clients WHERE $1)';
+    const whereClause = Object.keys(where).map(key => `${key} = $${Object.keys(where).indexOf(key) + 1}`).join(' AND ');
+    const query = `SELECT EXISTS (SELECT 1 FROM clients WHERE ${whereClause})`;
     try {
-      const result = await db.query(query, [where]);
+      const result = await db.query(query, Object.values(where));
       return result.rows[0].exists;
     } catch (error) {
       throw error;

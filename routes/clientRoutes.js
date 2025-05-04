@@ -50,4 +50,11 @@ router
     clientController.deleteClient
   ); // Delete client
 
+// Import clients from CSV
+router.post('/import-csv',
+  auth,
+  upload.single('csv'),
+  clientController.importClientsFromCsv
+);
+
 module.exports = router;

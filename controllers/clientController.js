@@ -1,6 +1,8 @@
 const Client = require('../models/client');
 const { logger } = require('../utils/logger');
 const path = require('path');
+const fs = require('fs');
+const {parse} = require('csv-parse');
 
 /**
  * Get relative path from absolute path
@@ -125,6 +127,7 @@ const createClient = async (req, res, next) => {
       data: client
     });
   } catch (error) {
+    console.log(error);
     logger.error(`Create client error: ${error.message}`);
     next(error);
   }
@@ -470,6 +473,214 @@ const getClientDocuments = async (req, res, next) => {
   }
 };
 
+/**
+ * Create multiple clients at once
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const createBulkClients = async (req, res) => {
+  try {
+    const { clients } = req.body;
+    const createdClients = [];
+    const errors = [];
+
+    // Process each client
+    for (const clientData of clients) {
+      try {
+        // Add user_id to client data
+        const fullClientData = {
+          ...clientData,
+          user_id: req.user.id
+        };
+
+        // Create client
+        const client = await Client.create(fullClientData);
+        createdClients.push(client);
+      } catch (error) {
+        errors.push({
+          data: clientData,
+          error: error.message
+        });
+      }
+    }
+
+    // Return results
+    res.json({
+      success: true,
+      created: createdClients.length,
+      failed: errors.length,
+      clients: createdClients,
+      errors: errors
+    });
+
+  } catch (error) {
+    console.error('Bulk client creation error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Import clients from CSV file
+ * @param {Object} req - Express request object with CSV file
+ * @param {Object} res - Express response object
+ */
+const importClientsFromCsv = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No CSV file uploaded' });
+    }
+
+    console.log('File received:', req.file.path);
+    const records = [];
+    const errors = [];
+    const duplicates = [];
+    
+    // Read file content
+    const fileContent = fs.readFileSync(req.file.path, 'utf-8');
+    console.log('File content read, first 100 chars:', fileContent.substring(0, 100));
+    
+    // Parse CSV content using Promise
+    const rows = await new Promise((resolve, reject) => {
+      parse(fileContent, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+        cast: true,
+        comment: '#'
+      }, (err, data) => {
+        if (err) {
+          console.error('CSV parsing error:', err);
+          reject(err);
+        } else {
+          console.log('CSV parsed successfully, found rows:', data.length);
+          resolve(data);
+        }
+      });
+    });
+
+    console.log('Total rows:', rows.length);
+
+    for (const record of rows) {
+      console.log('Processing record:', JSON.stringify(record, null, 2));
+      
+      try {
+        // Check for duplicate client
+        const existingClient = await Client.exists({ where: { email: record.email } });
+        if (existingClient) {
+          console.log('Duplicate email found:', record.email);
+          duplicates.push({
+            data: record,
+            existingClient: {
+              id: existingClient.id,
+              email: existingClient.email,
+              phone: existingClient.phone
+            }
+          });
+          continue; // Skip this record
+        }
+
+        const phoneExists = await Client.exists({ where: { phone: record.phone } });
+        if (phoneExists) {
+          console.log('Duplicate phone found:', record.phone);
+          duplicates.push({
+            data: record,
+            existingClient: {
+              id: phoneExists.id,
+              email: phoneExists.email,
+              phone: phoneExists.phone
+            }
+          });
+          continue; // Skip this record
+        }
+
+        // validate phone and email using regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^\d{10}$/;
+        if (!emailRegex.test(record.email) || !phoneRegex.test(record.phone)) {
+          console.log('Invalid email or phone:', { email: record.email, phone: record.phone });
+          errors.push({
+            data: record,
+            error: 'Invalid email or phone'
+          });
+          continue; // Skip this record
+        }
+
+        // Transform CSV data to match client model
+        const clientData = {
+          user_id: req.user.id,
+          first_name: record.first_name,
+          middle_name: record.middle_name || null,
+          last_name: record.last_name,
+          gender: record.gender,
+          dob: record.dob,
+          age: parseInt(record.age),
+          height: parseFloat(record.height),
+          weight: parseFloat(record.weight),
+          education: record.education,
+          birth_place: record.birth_place,
+          business_job_name: record.business_job_name,
+          type_of_duty: record.type_of_duty,
+          anual_income: parseFloat(record.anual_income),
+          pan_no: record.pan_no,
+          marital_status: record.marital_status,
+          phone: record.phone,
+          email: record.email,
+          address: record.address,
+          additional_info: record.additional_info || null,
+          adhar_card: record.adhar_card ? path.join('uploads', record.adhar_card) : null,
+          pan_card: record.pan_card ? path.join('uploads', record.pan_card) : null,
+          driving_licence: record.driving_licence ? path.join('uploads', record.driving_licence) : null,
+          mediclaim: record.mediclaim ? path.join('uploads', record.mediclaim) : null,
+          rc_book: record.rc_book ? path.join('uploads', record.rc_book) : null,
+          other_file: record.other_file ? path.join('uploads', record.other_file) : null
+        };
+
+        console.log('Creating client with data:', JSON.stringify(clientData, null, 2));
+        // Create client
+        const client = await Client.create(clientData);
+        console.log("Client created successfully:", client.id);
+        records.push(client);
+      } catch (error) {
+        console.error('Error creating client:', error);
+        errors.push({
+          data: record,
+          error: error.message
+        });
+      }
+    }
+
+    // Clean up the temporary file
+    fs.unlinkSync(req.file.path);
+    console.log('Temporary file cleaned up');
+
+    // Send final response
+    const response = {
+      success: true,
+      created: records.length,
+      failed: errors.length,
+      skipped: duplicates.length,
+      clients: records,
+      errors: errors,
+      duplicates: duplicates
+    };
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('CSV import error:', error);
+    // Clean up the temporary file if it exists
+    if (req.file && req.file.path) {
+      try {
+        fs.unlinkSync(req.file.path);
+        console.log('Temporary file cleaned up after error');
+      } catch (e) {
+        console.error('Error deleting temporary file:', e);
+      }
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 module.exports = {
   createClient,
   uploadClientDocument,
@@ -481,5 +692,7 @@ module.exports = {
   getClientsPremiumDue,
   addClientDocument,
   deleteClientDocument,
-  getClientDocuments
+  getClientDocuments,
+  createBulkClients,
+  importClientsFromCsv
 };

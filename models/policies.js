@@ -217,9 +217,10 @@ class Policy {
 
 
   static async exists({ where }) {
-    const query = 'SELECT EXISTS (SELECT 1 FROM policies WHERE $1)';
+    const whereClause = Object.keys(where).map(key => `${key} = $${Object.keys(where).indexOf(key) + 1}`).join(' AND ');
+    const query = `SELECT EXISTS (SELECT 1 FROM policies WHERE ${whereClause})`;
     try {
-      const result = await db.query(query, [where]);
+      const result = await db.query(query, Object.values(where));
       return result.rows[0].exists;
     } catch (error) {
       throw error;

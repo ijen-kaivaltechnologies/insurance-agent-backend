@@ -113,24 +113,26 @@ class Policy {
     const policy_type_id = filters.policy_type_id;
     
     let query = 'SELECT * FROM policies';
+    query += ' INNER JOIN clients ON policies.client_id = clients.id ';
+
     let params = [];
     let conditions = [];
     let paramCount = 1;
 
     if (user_id) {
-      conditions.push(`user_id = $${paramCount}`);
+      conditions.push(`policies.user_id = $${paramCount}`);
       params.push(user_id);
       paramCount++;
     }
 
     if (client_id) {
-      conditions.push(`client_id = $${paramCount}`);
+      conditions.push(`clients.client_id = $${paramCount}`);
       params.push(client_id);
       paramCount++;
     }
 
     if (policy_type_id) {
-      conditions.push(`policy_type_id = $${paramCount}`);
+      conditions.push(`policies.policy_type_id = $${paramCount}`);
       params.push(policy_type_id);
       paramCount++;
     }
@@ -139,7 +141,7 @@ class Policy {
       query += ' WHERE ' + conditions.join(' AND ');
     }
 
-    query += ' ORDER BY created_at DESC';
+    query += ' ORDER BY policies.created_at DESC';
 
     try {
       const result = await db.query(query, params);

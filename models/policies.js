@@ -188,6 +188,17 @@ class Policy {
       throw error;
     }
   }
+
+
+  static async exists({ where }) {
+    const query = 'SELECT EXISTS (SELECT 1 FROM policies WHERE $1)';
+    try {
+      const result = await db.query(query, [where]);
+      return result.rows[0].exists;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = Policy;

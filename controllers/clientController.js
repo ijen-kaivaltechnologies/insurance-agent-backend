@@ -49,6 +49,24 @@ const createClient = async (req, res, next) => {
       additional_info: req.body.additional_info,
       user_id: req.user.id
     };
+
+    // check if client already exists
+    const exists = await Client.exists({ where: { email: req.body.email, user_id: req.user.id } });
+    if (exists) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client with this email already exists'
+      });
+    }
+
+    // check if user with the phone exists
+    const phoneExists = await Client.exists({ where: { phone: req.body.phone, user_id: req.user.id } });
+    if (phoneExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client with this phone already exists'
+      });
+    }
     
     // Process uploaded documents if any
     if (req.body.document) {

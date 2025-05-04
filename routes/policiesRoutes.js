@@ -29,6 +29,26 @@ router.post('/',
     try {
 
       const userId = req.user.id;
+
+      // check if policy already exists
+      const exists = await Policy.exists({ where: { policy_num: req.body.policy_num, client_id: req.body.client_id } });
+      if (exists) {
+        return res.status(400).json({
+          success: false,
+          message: 'Policy with this policy number already exists'
+        });
+      }
+
+
+      // check if client with same policy id exists
+      const clientExists = await Policy.exists({ where: { policy_type_id: req.body.policy_type_id, client_id: req.body.client_id } });
+      if (clientExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'Client with this policy id already exists'
+        });
+      }
+
       const policy = await Policy.create({
         ...req.body,
         user_id: userId

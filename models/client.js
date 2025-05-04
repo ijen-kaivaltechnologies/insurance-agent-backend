@@ -355,6 +355,16 @@ class Client {
     const result = await db.query(query, [userId, withinDays]);
     return result.rows;
   }
+
+  static async exists({ where }) {
+    const query = 'SELECT EXISTS (SELECT 1 FROM clients WHERE $1)';
+    try {
+      const result = await db.query(query, [where]);
+      return result.rows[0].exists;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = Client;

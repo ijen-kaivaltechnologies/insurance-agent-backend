@@ -65,7 +65,10 @@ router.get('/',
   auth,
   async (req, res) => {
     try {
-      const policies = await Policy.getAll();
+
+      const filters = req.query;
+
+      const policies = await Policy.getAll(filters);
       res.json(policies);
     } catch (error) {
       res.status(500).json({ error: error.message });

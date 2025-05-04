@@ -108,29 +108,35 @@ class Policy {
    * @returns {Promise} - Promise with array of policies
    */
   static async getAll(filters = {}) {
-
-
     const user_id = filters.user_id;
     const client_id = filters.client_id;
     const policy_type_id = filters.policy_type_id;
     
-
     let query = 'SELECT * FROM policies';
     let params = [];
+    let conditions = [];
+    let paramCount = 1;
 
     if (user_id) {
-      query += ' WHERE user_id = $1';
+      conditions.push(`user_id = $${paramCount}`);
       params.push(user_id);
+      paramCount++;
     }
 
     if (client_id) {
-      query += ' AND client_id = $2';
+      conditions.push(`client_id = $${paramCount}`);
       params.push(client_id);
+      paramCount++;
     }
 
     if (policy_type_id) {
-      query += ' AND policy_type_id = $3';
+      conditions.push(`policy_type_id = $${paramCount}`);
       params.push(policy_type_id);
+      paramCount++;
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
     }
 
     query += ' ORDER BY created_at DESC';

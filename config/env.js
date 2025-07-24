@@ -18,6 +18,7 @@ module.exports = {
 
 	// global config
 	uploadsDir: process.env.UPLOADS_DIR || "uploads",
+	uploadVerificationToken: process.env.UPLOAD_VERIFICATION_TOKEN,
 
 	// Twilio (WhatsApp) config
 	twilioAccountSid: process.env.TWILIO_ACCOUNT_SID,

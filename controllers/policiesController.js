@@ -73,24 +73,18 @@ const createPolicy = async (req, res, next) => {
       cng_value: req.body.cng_value ? parseFloat(req.body.cng_value) : null,
       manufacture_year: req.body.manufacture_year ? parseInt(req.body.manufacture_year) : null,
       ncb: req.body.ncb ? parseFloat(req.body.ncb) : null,
-      model_variant: req.body.model_variant
+      model_variant: req.body.model_variant,
+
+
+      // files
+      adhar_card: req.body.adhar_card,
+      pan_card: req.body.pan_card,
+      driving_licence: req.body.driving_licence,
+      mediclaim: req.body.mediclaim,
+      rc_book: req.body.rc_book,
+      other_file: req.body.other_file,
+      policy_doc_path: req.body.policy_doc_path,
     };
-
-    // Handle file uploads
-    if (req.files) {
-      // Main policy document
-      if (req.files.policy_doc && req.files.policy_doc.length > 0) {
-        policyData.policy_doc_path = getRelativePath(req.files.policy_doc[0].path);
-      }
-
-      // Additional documents
-      const documentFields = ['adhar_card', 'pan_card', 'driving_licence', 'mediclaim', 'rc_book', 'other_file'];
-      for (const field of documentFields) {
-        if (req.files[field] && req.files[field].length > 0) {
-          policyData[field] = getRelativePath(req.files[field][0].path);
-        }
-      }
-    }
 
     const policy = await Policy.create(policyData);
     logger.info(`Policy created with ID: ${policy.id}`);

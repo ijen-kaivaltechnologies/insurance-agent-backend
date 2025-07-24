@@ -1,51 +1,33 @@
 const { query } = require("../config/db");
+const fs = require("fs");
+const path = require("path");
 
 async function migrate() {
-	let sql = `
-        ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN policy_num DROP NOT NULL;
+  const scriptsDir = path.join(__dirname);
+  const files = fs.readdirSync(scriptsDir)
+    .filter(f => f.endsWith(".sql"))
+    .sort();
 
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN start_date DROP NOT NULL;
-
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN end_date DROP NOT NULL;
-
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN term_year DROP NOT NULL;
-
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN premium_pay_term DROP NOT NULL;
-
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN plan_name DROP NOT NULL;
-
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN payment_mode DROP NOT NULL;
-
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN insurance_company_name DROP NOT NULL;
-
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN policy_type DROP NOT NULL;
-
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN net_primium DROP NOT NULL;
-
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN gst_percent DROP NOT NULL;
-
-    ALTER TABLE IF EXISTS public.policies
-        ALTER COLUMN total_premium DROP NOT NULL;
-    `;
-	await query(sql);
+  for (const file of files) {
+    const filePath = path.join(scriptsDir, file);
+    const sql = fs.readFileSync(filePath, "utf8");
+    console.log(`Running migration: ${file}`);
+    try {
+      await query(sql);
+      console.log(`Success: ${file}`);
+    } catch (err) {
+      console.error(`Failed: ${file}`);
+      throw err;
+    }
+  }
 }
 
+console.log("Migration started");
 migrate()
-	.then(() => {
-		console.log("Migration complete");
-	})
-	.catch((err) => {
-		console.log("Migration failed");
-		console.log(err);
-	});
+  .then(() => {
+    console.log("Migration complete");
+  })
+  .catch((err) => {
+    console.log("Migration failed");
+    console.log(err);
+  });

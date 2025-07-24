@@ -22,15 +22,6 @@ const handleValidationErrors = (req, res, next) => {
 router.post(
 	"/",
 	auth,
-	upload.fields([
-		{ name: "adhar_card", maxCount: 1 },
-		{ name: "pan_card", maxCount: 1 },
-		{ name: "driving_licence", maxCount: 1 },
-		{ name: "mediclaim", maxCount: 1 },
-		{ name: "rc_book", maxCount: 1 },
-		{ name: "other_file", maxCount: 1 },
-		{ name: "policy_doc_path", maxCount: 1 },
-	]),
 	async (req, res) => {
 		try {
 			const userId = req.user.id;
@@ -59,18 +50,8 @@ router.post(
 			if (clientExists) {
 				return res.status(400).json({
 					success: false,
-					message: "Client with this policy id already exists",
+					message: "Client with this policy type id already exists",
 				});
-			}
-
-			// file path to be saved in database
-			const uploadedFileKeys = Object.keys(req.files);
-
-			for (const fieldname of uploadedFileKeys) {
-				const file = req.files[fieldname][0];
-				const destination_path = file.path.split("uploads")[1];
-
-				req.body[fieldname] = destination_path;
 			}
 
 			for (const key in Object.keys(req.body)) {

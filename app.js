@@ -10,6 +10,9 @@ const insuranceRoutes = require('./routes/insuranceRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const policyTypeRoutes = require('./routes/policyTypeRoutes');
 const policiesRoutes = require('./routes/policiesRoutes');
+const fileUploadRoutes = require('./routes/fileUpload');
+const env = require('./config/env');
+
 const app = express();
 
 // Middleware setup
@@ -20,6 +23,9 @@ app.use(helmet());
 app.use(morgan('dev'));
 app.use(rateLimiter.apiLimiter);
 
+//serve static files
+app.use('/uploads', express.static(env.uploadsDir));
+
 // Routes setup
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
@@ -27,6 +33,7 @@ app.use('/api/policies', policiesRoutes);
 app.use('/api/insurance', insuranceRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/policy-types', policyTypeRoutes);
+app.use('/api/file-upload', fileUploadRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

@@ -115,34 +115,12 @@ router.put(
 	auth,
 	param("id").notEmpty().withMessage("Policy ID is required"),
 	handleValidationErrors,
-	upload.fields([
-		{ name: "adhar_card", maxCount: 1 },
-		{ name: "pan_card", maxCount: 1 },
-		{ name: "driving_licence", maxCount: 1 },
-		{ name: "mediclaim", maxCount: 1 },
-		{ name: "rc_book", maxCount: 1 },
-		{ name: "other_file", maxCount: 1 },
-		{ name: "policy_doc_path", maxCount: 1 },
-	]),
 	async (req, res) => {
 		try {
 			const existingPolicy = await Policy.getById(req.params.id);
 
 			if (!existingPolicy) {
 				return res.status(404).json({ message: "Policy not found" });
-			}
-
-			const filesToDelete = [];
-
-			// file path to be saved in database
-			const uploadedFileKeys = Object.keys(req.files);
-			for (const fieldname of uploadedFileKeys) {
-				const file = req.files[fieldname][0];
-				const destination_path = file.path.split("uploads")[1];
-				req.body[fieldname] = destination_path;
-
-				existingPolicy[fieldname] &&
-					filesToDelete.push(existingPolicy[fieldname]);
 			}
 
 			for (const key of Object.keys(req.body)) {
@@ -157,16 +135,6 @@ router.put(
 			}
 
 			const policy = await Policy.update(req.params.id, req.body);
-
-			// delete files from uploads folder
-			for (const file of filesToDelete) {
-				const filePath = path.join(__dirname, "..", env.uploadsDir, file);
-
-				if (fs.existsSync(filePath)) {
-					fs.unlinkSync(filePath);
-					console.log(`File ${file} deleted successfully`);
-				}
-			}
 
 			res.json(policy);
 		} catch (error) {

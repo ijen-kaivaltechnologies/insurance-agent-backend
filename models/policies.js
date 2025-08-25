@@ -251,10 +251,10 @@ class Policy {
 
         if (search) {
             conditions.push(`(
-            policies.insured_name ILIKE $${paramCount} OR
-            policies.policy_num ILIKE $${paramCount} OR
-            policies.plan_name ILIKE $${paramCount}
-        )`);
+                policies.insured_name ILIKE $${paramCount} OR
+                CAST(policies.policy_num AS TEXT) ILIKE $${paramCount} OR
+                policies.plan_name ILIKE $${paramCount}
+            )`);
             params.push(`%${search}%`);
             paramCount++;
         }

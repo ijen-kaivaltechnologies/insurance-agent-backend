@@ -83,6 +83,12 @@ router.get("/", auth, async (req, res) => {
 	try {
 		const filters = req.query;
 
+		let limit = filters.limit ? parseInt(filters.limit, 10) : 10;
+		let page = filters.page ? parseInt(filters.page, 10) : 0;
+		let q = filters.q ? filters.q.trim() : "";
+
+		filters.offset = page * limit;
+
 		const policies = await Policy.getAll(filters);
 		res.json(policies);
 	} catch (error) {

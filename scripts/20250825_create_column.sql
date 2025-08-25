@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS public.policies
+ADD COLUMN IF NOT EXISTS other_policy_type VARCHAR(255) NULL;

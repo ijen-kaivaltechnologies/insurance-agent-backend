@@ -69,6 +69,7 @@ class Policy {
     pwb_rider_note;
     other_rider_amount;
     other_rider_note;
+	other_policy_type;
 
     // Timestamps
     created_at;
@@ -216,48 +217,63 @@ class Policy {
 	 * @returns {Promise} - Promise with arra y of policies
 	 */
 	static async getAll(filters = {}) {
-		const user_id = filters.user_id;
-		const client_id = filters.client_id;
-		const policy_type_id = filters.policy_type_id;
+        const user_id = filters.user_id;
+        const client_id = filters.client_id;
+        const policy_type_id = filters.policy_type_id;
+        const search = filters.search;
+        const limit = filters.limit ? parseInt(filters.limit, 10) : 10;
+        const offset = filters.offset ? parseInt(filters.offset, 10) : 0;
 
-		let query = "SELECT policies.id as policy_id, * FROM policies";
-		query += " INNER JOIN clients ON policies.client_id = clients.id ";
+        let query = "SELECT policies.id as policy_id, * FROM policies";
+        query += " INNER JOIN clients ON policies.client_id = clients.id ";
 
-		let params = [];
-		let conditions = [];
-		let paramCount = 1;
+        let params = [];
+        let conditions = [];
+        let paramCount = 1;
 
-		if (user_id) {
-			conditions.push(`policies.user_id = $${paramCount}`);
-			params.push(user_id);
-			paramCount++;
-		}
+        if (user_id) {
+            conditions.push(`policies.user_id = $${paramCount}`);
+            params.push(user_id);
+            paramCount++;
+        }
 
-		if (client_id) {
-			conditions.push(`clients.client_id = $${paramCount}`);
-			params.push(client_id);
-			paramCount++;
-		}
+        if (client_id) {
+            conditions.push(`clients.client_id = $${paramCount}`);
+            params.push(client_id);
+            paramCount++;
+        }
 
-		if (policy_type_id) {
-			conditions.push(`policies.policy_type_id = $${paramCount}`);
-			params.push(policy_type_id);
-			paramCount++;
-		}
+        if (policy_type_id) {
+            conditions.push(`policies.policy_type_id = $${paramCount}`);
+            params.push(policy_type_id);
+            paramCount++;
+        }
 
-		if (conditions.length > 0) {
-			query += " WHERE " + conditions.join(" AND ");
-		}
+        if (search) {
+            conditions.push(`(
+            policies.insured_name ILIKE $${paramCount} OR
+            policies.policy_num ILIKE $${paramCount} OR
+            policies.plan_name ILIKE $${paramCount}
+        )`);
+            params.push(`%${search}%`);
+            paramCount++;
+        }
 
-		query += " ORDER BY policies.created_at DESC";
+        if (conditions.length > 0) {
+            query += " WHERE " + conditions.join(" AND ");
+        }
 
-		try {
-			const result = await db.query(query, params);
-			return result.rows;
-		} catch (error) {
-			throw error;
-		}
-	}
+        query += " ORDER BY policies.created_at DESC";
+        query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+        params.push(limit, offset);
+
+        try {
+            const result = await db.query(query, params);
+            return result.rows;
+        } catch (error) {
+            throw error;
+        }
+    }
 
 	/**
 	 * Get policy by ID

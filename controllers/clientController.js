@@ -187,13 +187,17 @@ const uploadClientDocument = async (req, res, next) => {
  */
 const getAllClients = async (req, res, next) => {
 	try {
-		const { search, city_id, state_id } = req.query;
+		const { search, limit } = req.query;
+
+		// Calculate offset for pagination
+		const page = isNaN(parseInt(req.query.page, 10)) ? 0 : parseInt(req.query.page, 10);
+		const offset = page * limit;
 
 		// Get clients with filters
 		const clients = await Client.findAll(req.user.id, {
 			search,
-			city_id,
-			state_id,
+			limit,
+			offset,
 		});
 
 		res.status(200).json({

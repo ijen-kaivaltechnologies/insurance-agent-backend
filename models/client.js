@@ -157,7 +157,7 @@ class Client {
 	 * @returns {Promise} - Promise with array of clients
 	 */
 	static async findAll(userId, filters = {}) {
-		const { search } = filters;
+		const { search, limit, offset } = filters;
 
 		let query = `
       SELECT c.*
@@ -169,14 +169,22 @@ class Client {
 
 		// Add search filter if provided
 		if (search) {
-			query += ` AND (c.first_name ILIKE $${queryParams.length + 1} 
-                  OR c.last_name ILIKE $${queryParams.length + 1}
-                  OR c.email ILIKE $${queryParams.length + 1}
-                  OR c.phone ILIKE $${queryParams.length + 1})`;
+			query += ` AND (
+            c.first_name ILIKE $${queryParams.length + 1} 
+            OR c.last_name ILIKE $${queryParams.length + 1}
+            OR c.email ILIKE $${queryParams.length + 1}
+            OR c.phone ILIKE $${queryParams.length + 1}
+        )`;
 			queryParams.push(`%${search}%`);
 		}
 
 		query += " ORDER BY c.created_at DESC";
+
+		// Add pagination
+		const pageLimit = limit ? parseInt(limit, 10) : 10;
+		const pageOffset = offset ? parseInt(offset, 10) : 0;
+		query += ` LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+		queryParams.push(pageLimit, pageOffset);
 
 		const result = await db.query(query, queryParams);
 		return result.rows;

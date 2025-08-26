@@ -253,7 +253,15 @@ class Policy {
             conditions.push(`(
                 policies.insured_name ILIKE $${paramCount} OR
                 CAST(policies.policy_num AS TEXT) ILIKE $${paramCount} OR
-                policies.plan_name ILIKE $${paramCount}
+                policies.plan_name ILIKE $${paramCount} OR
+                policies.insurance_company_name ILIKE $${paramCount} OR
+                policies.policy_type ILIKE $${paramCount} OR
+                policies.registration_rto ILIKE $${paramCount} OR
+                policies.vehicle_type ILIKE $${paramCount} OR
+                policies.engine_number ILIKE $${paramCount} OR
+                policies.chassis_number ILIKE $${paramCount} OR
+                policies.model_variant ILIKE $${paramCount} OR
+                policies.refer_name ILIKE $${paramCount}
             )`);
             params.push(`%${search}%`);
             paramCount++;

@@ -5,74 +5,74 @@ const { v4: uuidv4 } = require("uuid");
  * Policy model for managing insurance policies
  */
 class Policy {
-    // Primary Keys and Foreign Keys
-    id; // Primary Key
-    client_id; // Foreign Key
-    user_id; // Foreign Key
-    policy_type_id; // Foreign Key
+	// Primary Keys and Foreign Keys
+	id; // Primary Key
+	client_id; // Foreign Key
+	user_id; // Foreign Key
+	policy_type_id; // Foreign Key
 
-    // Basic Policy Information
-    insured_name;
-    sum_insured;
-    policy_num;
-    start_date;
-    end_date;
-    term_year;
-    premium_pay_term;
-    plan_name;
-    payment_mode;
-    insurance_company_name;
-    policy_type;
+	// Basic Policy Information
+	insured_name;
+	sum_insured;
+	policy_num;
+	start_date;
+	end_date;
+	term_year;
+	premium_pay_term;
+	plan_name;
+	payment_mode;
+	insurance_company_name;
+	policy_type;
 
-    // Premium and GST Details
-    net_primium;
-    gst_percent;
-    gst_2nd_year_percent;
-    gst_3rd_year_percent;
-    total_premium;
-    gst_amount;
+	// Premium and GST Details
+	net_primium;
+	gst_percent;
+	gst_2nd_year_percent;
+	gst_3rd_year_percent;
+	total_premium;
+	gst_amount;
 
-    // Document Fields
-    policy_doc_path;
-    adhar_card;
-    pan_card;
-    driving_licence;
-    mediclaim;
-    rc_book;
-    other_file;
+	// Document Fields
+	policy_doc_path;
+	adhar_card;
+	pan_card;
+	driving_licence;
+	mediclaim;
+	rc_book;
+	other_file;
 
-    // Additional Information
-    refer_name;
-    note;
+	// Additional Information
+	refer_name;
+	note;
 
-    // Vehicle Insurance Specific Fields
-    registration_rto;
-    vehicle_type;
-    engine_number;
-    chassis_number;
-    vehical_class;
-    insurance_type;
-    tp_premium;
-    cng_value;
-    manufacture_year;
-    ncb;
-    model_variant;
+	// Vehicle Insurance Specific Fields
+	registration_rto;
+	vehicle_type;
+	engine_number;
+	chassis_number;
+	vehical_class;
+	insurance_type;
+	tp_premium;
+	cng_value;
+	manufacture_year;
+	ncb;
+	model_variant;
 
-    // Rider Information
-    term_rider_amount;
-    term_rider_note;
-    critical_rider_amount;
-    critical_rider_note;
-    accident_rider_amount;
-    accident_rider_note;
-    pwb_rider_amount;
-    pwb_rider_note;
-    other_rider_amount;
-    other_rider_note;
+	// Rider Information
+	term_rider_amount;
+	term_rider_note;
+	critical_rider_amount;
+	critical_rider_note;
+	accident_rider_amount;
+	accident_rider_note;
+	pwb_rider_amount;
+	pwb_rider_note;
+	other_rider_amount;
+	other_rider_note;
 	other_policy_type;
 
-    // Timestamps
-    created_at;
+	// Timestamps
+	created_at;
 
 	/**
 	 * Create a new policy
@@ -217,40 +217,40 @@ class Policy {
 	 * @returns {Promise} - Promise with arra y of policies
 	 */
 	static async getAll(filters = {}) {
-        const user_id = filters.user_id;
-        const client_id = filters.client_id;
-        const policy_type_id = filters.policy_type_id;
-        const search = filters.search;
-        const limit = filters.limit ? parseInt(filters.limit, 10) : 10;
-        const offset = filters.offset ? parseInt(filters.offset, 10) : 0;
+		const user_id = filters.user_id;
+		const client_id = filters.client_id;
+		const policy_type_id = filters.policy_type_id;
+		const search = filters.search;
+		const limit = filters.limit ? parseInt(filters.limit, 10) : 10;
+		const offset = filters.offset ? parseInt(filters.offset, 10) : 0;
 
-        let query = "SELECT policies.id as policy_id, * FROM policies";
-        query += " INNER JOIN clients ON policies.client_id = clients.id ";
+		let query = "SELECT policies.id as policy_id, * FROM policies";
+		query += " INNER JOIN clients ON policies.client_id = clients.id ";
 
-        let params = [];
-        let conditions = [];
-        let paramCount = 1;
+		let params = [];
+		let conditions = [];
+		let paramCount = 1;
 
-        if (user_id) {
-            conditions.push(`policies.user_id = $${paramCount}`);
-            params.push(user_id);
-            paramCount++;
-        }
+		if (user_id) {
+			conditions.push(`policies.user_id = $${paramCount}`);
+			params.push(user_id);
+			paramCount++;
+		}
 
-        if (client_id) {
-            conditions.push(`clients.client_id = $${paramCount}`);
-            params.push(client_id);
-            paramCount++;
-        }
+		if (client_id) {
+			conditions.push(`clients.client_id = $${paramCount}`);
+			params.push(client_id);
+			paramCount++;
+		}
 
-        if (policy_type_id) {
-            conditions.push(`policies.policy_type_id = $${paramCount}`);
-            params.push(policy_type_id);
-            paramCount++;
-        }
+		if (policy_type_id) {
+			conditions.push(`policies.policy_type_id = $${paramCount}`);
+			params.push(policy_type_id);
+			paramCount++;
+		}
 
-        if (search) {
-            conditions.push(`(
+		if (search) {
+			conditions.push(`(
                 policies.insured_name ILIKE $${paramCount} OR
                 CAST(policies.policy_num AS TEXT) ILIKE $${paramCount} OR
                 policies.plan_name ILIKE $${paramCount} OR
@@ -263,25 +263,25 @@ class Policy {
                 policies.model_variant ILIKE $${paramCount} OR
                 policies.refer_name ILIKE $${paramCount}
             )`);
-            params.push(`%${search}%`);
-            paramCount++;
-        }
+			params.push(`%${search}%`);
+			paramCount++;
+		}
 
-        if (conditions.length > 0) {
-            query += " WHERE " + conditions.join(" AND ");
-        }
+		if (conditions.length > 0) {
+			query += " WHERE " + conditions.join(" AND ");
+		}
 
-        query += " ORDER BY policies.created_at DESC";
-        query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-        params.push(limit, offset);
+		query += " ORDER BY policies.created_at DESC";
+		query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+		params.push(limit, offset);
 
-        try {
-            const result = await db.query(query, params);
-            return result.rows;
-        } catch (error) {
-            throw error;
-        }
-    }
+		try {
+			const result = await db.query(query, params);
+			return result.rows;
+		} catch (error) {
+			throw error;
+		}
+	}
 
 	/**
 	 * Get policy by ID
@@ -364,6 +364,25 @@ class Policy {
 		try {
 			const result = await db.query(query, Object.values(where));
 			return result.rows[0].exists;
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	static async getExpiringPoliciesOfUser(user_id="", days = 30) {
+		const nDays = parseInt(days);
+		
+		const q = ` SELECT * FROM policies 
+					WHERE 
+						end_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '${nDays} ${
+							nDays > 1 ? "days" : "day"
+						}' 
+					AND 
+						user_id=$1
+					ORDER BY end_date DESC`;
+		try {
+			const result = await db.query(q, [user_id]);
+			return result.rows;
 		} catch (error) {
 			throw error;
 		}

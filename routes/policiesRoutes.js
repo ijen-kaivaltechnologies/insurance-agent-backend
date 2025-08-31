@@ -89,12 +89,36 @@ router.get("/", auth, async (req, res) => {
 
 		filters.offset = page * limit;
 
+		filters.user_id = req.user.id;
+
 		const policies = await Policy.getAll(filters);
 		res.json(policies);
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}
 });
+
+// Get all policies
+router.get("/expiring", auth, async (req, res) => {
+	try {
+
+		let intervalInDays = parseInt(req.query.interval) //in days
+		const userId = req.user.id;
+
+		if (isNaN(intervalInDays)) {
+			intervalInDays = 30;
+		}
+
+		const policies = await Policy.getExpiringPoliciesOfUser(
+			userId,
+			intervalInDays
+		);
+		res.json(policies);
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+});
+
 
 // Get policy by ID
 router.get(

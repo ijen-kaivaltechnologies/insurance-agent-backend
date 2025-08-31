@@ -142,10 +142,43 @@ const notificationValidationRules = {
   ]
 };
 
+const updateProfileValidator = [
+	body("name")
+		.optional()
+		.isString()
+		.withMessage("Name must be a string")
+		.isLength({ max: 100 })
+		.withMessage("Name must be at most 100 characters")
+		.trim()
+		.escape(),
+
+	body("email")
+		.optional()
+		.isEmail()
+		.withMessage("Invalid email")
+		.normalizeEmail(),
+
+	body("phone")
+		.optional()
+		.isMobilePhone("any")
+		.withMessage("Invalid phone number")
+		.trim(),
+
+	body("company_name")
+		.optional()
+		.isString()
+		.withMessage("Company name must be a string")
+		.isLength({ max: 100 })
+		.withMessage("Company name must be at most 100 characters")
+		.trim()
+		.escape(),
+];
+
 module.exports = {
-  validate,
-  userValidationRules,
-  clientValidationRules,
-  insuranceValidationRules,
-  notificationValidationRules
+	validate,
+	userValidationRules,
+	clientValidationRules,
+	insuranceValidationRules,
+	notificationValidationRules,
+	updateProfileValidator,
 };

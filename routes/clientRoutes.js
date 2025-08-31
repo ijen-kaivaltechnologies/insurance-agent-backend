@@ -29,6 +29,16 @@ router
 		clientController.createClient
 	); // Create new client
 
+router.route("/birthdays").get(auth, clientController.getClientsByBirthday)
+
+// Import clients from CSV
+router.post(
+	"/import-csv",
+	auth,
+	upload.single("csv"),
+	clientController.importClientsFromCsv
+);
+
 router
 	.route("/:id")
 	.get(
@@ -58,12 +68,6 @@ router
 		clientController.deleteClient
 	); // Delete client
 
-// Import clients from CSV
-router.post(
-	"/import-csv",
-	auth,
-	upload.single("csv"),
-	clientController.importClientsFromCsv
-);
+
 
 module.exports = router;

@@ -190,7 +190,9 @@ const getAllClients = async (req, res, next) => {
 		const { search, limit } = req.query;
 
 		// Calculate offset for pagination
-		const page = isNaN(parseInt(req.query.page, 10)) ? 0 : parseInt(req.query.page, 10);
+		const page = isNaN(parseInt(req.query.page, 10))
+			? 0
+			: parseInt(req.query.page, 10);
 		const offset = page * limit;
 
 		// Get clients with filters
@@ -725,6 +727,15 @@ const importClientsFromCsv = async (req, res) => {
 	}
 };
 
+const getClientsByBirthday = async (req, res) => {
+	const userId = req.user.id;
+
+	const d = await Client.getBirthdayClientsOfTheUser(userId);
+	res.json({
+		data: d,
+	});
+};
+
 module.exports = {
 	createClient,
 	uploadClientDocument,
@@ -739,4 +750,5 @@ module.exports = {
 	getClientDocuments,
 	createBulkClients,
 	importClientsFromCsv,
+	getClientsByBirthday,
 };

@@ -475,6 +475,23 @@ class Client {
 			throw error;
 		}
 	}
+
+	static async getBirthdayClientsOfTheUser(userId){
+		const q = `
+			SELECT * FROM clients
+			WHERE 
+				date(dob) = current_date
+			AND
+				user_id=$1
+		`
+
+		try {
+			const result = await db.query(q, [userId]);
+			return result.rows;
+		} catch (error) {
+			throw error;
+		}
+	}
 }
 
 module.exports = Client;

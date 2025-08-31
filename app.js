@@ -11,6 +11,7 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const policyTypeRoutes = require('./routes/policyTypeRoutes');
 const policiesRoutes = require('./routes/policiesRoutes');
 const fileUploadRoutes = require('./routes/fileUpload');
+const userRoutes = require("./routes/userRoutes")
 const env = require('./config/env');
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/uploads', express.static(env.uploadsDir));
 
 // Routes setup
 app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/policies', policiesRoutes);
 app.use('/api/insurance', insuranceRoutes);

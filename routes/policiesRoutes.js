@@ -194,7 +194,7 @@ router.delete(
 
 // Import policies from CSV
 router.post(
-	"/import-csv",
+	"/import-csv/:policy_type_id",
 	auth,
 	upload.single("csv"),
 	policyController.importPoliciesFromCsv

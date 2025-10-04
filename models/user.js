@@ -6,88 +6,111 @@ const { v4: uuidv4 } = require('uuid');
  * User model for handling authentication and user-related operations
  */
 class User {
-  /**
-   * Create a new user
-   * @param {Object} userData - User data
-   * @returns {Promise} - Promise with new user data
-   */
-  static async create(userData) {
-    const { name, email, password, phone, company_name } = userData;
-    
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    
-    // Generate UUID
-    const id = uuidv4();
-    
-    const query = `
+	/**
+	 * Create a new user
+	 * @param {Object} userData - User data
+	 * @returns {Promise} - Promise with new user data
+	 */
+	static async create(userData) {
+		const { name, email, password, phone, company_name } = userData;
+
+		// Hash password
+		const salt = await bcrypt.genSalt(10);
+		const hashedPassword = await bcrypt.hash(password, salt);
+
+		// Generate UUID
+		const id = uuidv4();
+
+		const query = `
       INSERT INTO users (id, name, email, password, phone, company_name)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id, name, email, phone, company_name, created_at
     `;
-    
-    const values = [id, name, email, hashedPassword, phone, company_name];
-    
-    const result = await db.query(query, values);
-    return result.rows[0];
-  }
-  
-  /**
-   * Find user by email
-   * @param {string} email - User email
-   * @returns {Promise} - Promise with user data or null
-   */
-  static async findByEmail(email) {
-    const query = 'SELECT * FROM users WHERE email = $1';
-    const result = await db.query(query, [email]);
-    
-    return result.rows[0] || null;
-  }
-  
-  /**
-   * Find user by ID
-   * @param {string} id - User ID
-   * @returns {Promise} - Promise with user data or null
-   */
-  static async findById(id) {
-    const query = 'SELECT * FROM users WHERE id = $1';
-    const result = await db.query(query, [id]);
-    
-    return result.rows[0] || null;
-  }
-  
-  /**
-   * Verify password
-   * @param {string} password - Plain password
-   * @param {string} hashedPassword - Hashed password
-   * @returns {Promise<boolean>} - True if password matches
-   */
-  static async verifyPassword(password, hashedPassword) {
-    return await bcrypt.compare(password, hashedPassword);
-  }
-  
-  /**
-   * Update user
-   * @param {string} id - User ID
-   * @param {Object} userData - User data to update
-   * @returns {Promise} - Promise with updated user data
-   */
-  static async update(id, userData) {
-    const { name, email, phone, company_name } = userData;
-    
-    const query = `
+
+		const values = [id, name, email, hashedPassword, phone, company_name];
+
+		const result = await db.query(query, values);
+		return result.rows[0];
+	}
+
+	/**
+	 * Find user by email
+	 * @param {string} email - User email
+	 * @returns {Promise} - Promise with user data or null
+	 */
+	static async findByEmail(email) {
+		const query = "SELECT * FROM users WHERE email = $1";
+		const result = await db.query(query, [email]);
+
+		return result.rows[0] || null;
+	}
+
+	/**
+	 * Find user by ID
+	 * @param {string} id - User ID
+	 * @returns {Promise} - Promise with user data or null
+	 */
+	static async findById(id) {
+		const query = "SELECT * FROM users WHERE id = $1";
+		const result = await db.query(query, [id]);
+
+		return result.rows[0] || null;
+	}
+
+	/**
+	 * Verify password
+	 * @param {string} password - Plain password
+	 * @param {string} hashedPassword - Hashed password
+	 * @returns {Promise<boolean>} - True if password matches
+	 */
+	static async verifyPassword(password, hashedPassword) {
+		return await bcrypt.compare(password, hashedPassword);
+	}
+
+	/**
+	 * Update user
+	 * @param {string} id - User ID
+	 * @param {Object} userData - User data to update
+	 * @returns {Promise} - Promise with updated user data
+	 */
+	static async update(id, userData) {
+		const { name, email, phone, company_name } = userData;
+
+		const query = `
       UPDATE users
       SET name = $2, email = $3, phone = $4, company_name = $5, updated_at=CURRENT_TIMESTAMP
       WHERE id = $1
       RETURNING id, name, email, phone, created_at, updated_at, company_name
     `;
-    
-    const values = [id, name, email, phone, company_name];
-    
-    const result = await db.query(query, values);
-    return result.rows[0];
-  }
+
+		const values = [id, name, email, phone, company_name];
+
+		const result = await db.query(query, values);
+		return result.rows[0];
+	}
+
+	/**
+	 * Update user password
+	 * @param {string} id - User ID
+	 * @param {string} newPassword - new password data to update
+	 * @returns {Promise} - Promise
+	 */
+	static async updatePassword(id, newPassword) {
+
+		// Hash password
+		const salt = await bcrypt.genSalt(10);
+		const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+		const query = `
+      UPDATE users
+      SET password = $2, updated_at=CURRENT_TIMESTAMP
+      WHERE id = $1
+    `;
+
+		const values = [id, hashedPassword];
+
+		await db.query(query, values);
+	}
 }
 
 module.exports = User;

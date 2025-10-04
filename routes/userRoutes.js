@@ -10,6 +10,9 @@ router
 	.route("/me")
 	.get(userController.getProfile)
 	.put(updateProfileValidator, validate, userController.updateProfile);
+
 router.get("/stats", userController.getStats);
+
+router.patch("/change-password", userController.changePassword)
 
 module.exports = router;

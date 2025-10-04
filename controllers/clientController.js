@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const { parse } = require("csv-parse");
 const env = require("../config/env");
-const { getRelativePath } = require("../utils/helpers");
+const { getRelativePath, cleanValue, parseInputFile } = require("../utils/helpers");
 
 /**
  * Create a new client
@@ -556,34 +556,7 @@ const importClientsFromCsv = async (req, res) => {
 		const duplicates = [];
 
 		// Read file content
-		const fileContent = fs.readFileSync(req.file.path, "utf-8");
-		console.log(
-			"File content read, first 100 chars:",
-			fileContent.substring(0, 100)
-		);
-
-		// Parse CSV content using Promise
-		const rows = await new Promise((resolve, reject) => {
-			parse(
-				fileContent,
-				{
-					columns: true,
-					skip_empty_lines: true,
-					trim: true,
-					cast: true,
-					comment: "#",
-				},
-				(err, data) => {
-					if (err) {
-						console.error("CSV parsing error:", err);
-						reject(err);
-					} else {
-						console.log("CSV parsed successfully, found rows:", data.length);
-						resolve(data);
-					}
-				}
-			);
-		});
+		const rows = await parseInputFile(req.file.path);
 
 		console.log("Total rows:", rows.length);
 
@@ -614,12 +587,7 @@ const importClientsFromCsv = async (req, res) => {
 				if (phoneExists) {
 					console.log("Duplicate phone found:", record.phone);
 					duplicates.push({
-						data: record,
-						existingClient: {
-							id: phoneExists.id,
-							email: phoneExists.email,
-							phone: phoneExists.phone,
-						},
+						data: record
 					});
 					continue; // Skip this record
 				}
@@ -627,14 +595,28 @@ const importClientsFromCsv = async (req, res) => {
 				// validate phone and email using regex
 				const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 				const phoneRegex = /^\d{10}$/;
-				if (!emailRegex.test(record.email) || !phoneRegex.test(record.phone)) {
-					console.log("Invalid email or phone:", {
+
+				if (record.email && !emailRegex.test(record.email)) {
+					console.log("Invalid email:", {
 						email: record.email,
 						phone: record.phone,
 					});
 					errors.push({
 						data: record,
-						error: "Invalid email or phone",
+						error: "Invalid email",
+					});
+					continue; // Skip this record
+				}
+
+
+				if (!phoneRegex.test(record.phone)) {
+					console.log("Invalid phone:", {
+						email: record.email,
+						phone: record.phone,
+					});
+					errors.push({
+						data: record,
+						error: "Invalid phone",
 					});
 					continue; // Skip this record
 				}
@@ -642,42 +624,33 @@ const importClientsFromCsv = async (req, res) => {
 				// Transform CSV data to match client model
 				const clientData = {
 					user_id: req.user.id,
-					first_name: record.first_name,
-					middle_name: record.middle_name || null,
-					last_name: record.last_name,
-					gender: record.gender,
-					dob: record.dob,
-					age: parseInt(record.age),
-					height: parseFloat(record.height),
-					weight: parseFloat(record.weight),
-					education: record.education,
-					birth_place: record.birth_place,
-					business_job_name: record.business_job_name,
-					type_of_duty: record.type_of_duty,
-					anual_income: parseFloat(record.anual_income),
-					pan_no: record.pan_no,
-					marital_status: record.marital_status,
-					phone: record.phone,
-					email: record.email,
-					address: record.address,
-					additional_info: record.additional_info || null,
-					adhar_card: record.adhar_card
-						? path.join("uploads", record.adhar_card)
-						: null,
-					pan_card: record.pan_card
-						? path.join("uploads", record.pan_card)
-						: null,
-					driving_licence: record.driving_licence
-						? path.join("uploads", record.driving_licence)
-						: null,
-					mediclaim: record.mediclaim
-						? path.join("uploads", record.mediclaim)
-						: null,
-					rc_book: record.rc_book ? path.join("uploads", record.rc_book) : null,
-					other_file: record.other_file
-						? path.join("uploads", record.other_file)
-						: null,
+					first_name: cleanValue(record.first_name),
+					middle_name: cleanValue(record.middle_name || null),
+					last_name: cleanValue(record.last_name),
+					gender: cleanValue(record.gender),
+					dob: cleanValue(record.dob),
+					age: cleanValue(record.age),
+					height: cleanValue(record.height),
+					weight: cleanValue(record.weight),
+					education: cleanValue(record.education),
+					birth_place: cleanValue(record.birth_place),
+					business_job_name: cleanValue(record.business_job_name),
+					type_of_duty: cleanValue(record.type_of_duty),
+					anual_income: cleanValue(record.anual_income) || 0,
+					pan_no: cleanValue(record.pan_no),
+					marital_status: cleanValue(record.marital_status),
+					phone: cleanValue(record.phone),
+					email: cleanValue(record.email),
+					address: cleanValue(record.address),
+					additional_info: cleanValue(record.additional_info || null),
+					adhar_card: cleanValue(record.adhar_card),
+					pan_card: cleanValue(record.pan_card),
+					driving_licence: cleanValue(record.driving_licence),
+					mediclaim: cleanValue(record.mediclaim),
+					rc_book: cleanValue(record.rc_book),
+					other_file: cleanValue(record.other_file),
 				};
+
 
 				console.log(
 					"Creating client with data:",

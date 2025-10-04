@@ -42,6 +42,7 @@ const fileFilter = (req, file, cb) => {
 		"image/jpeg",
 		"image/png",
 		"text/csv",
+		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 	];
 
 	if (ALLOWED_MIME_TYPES.includes(file.mimetype?.trim().toLowerCase())) {
@@ -49,7 +50,7 @@ const fileFilter = (req, file, cb) => {
 	} else {
 		cb(
 			new Error(
-				"Invalid file type. Only PDF, JPEG, PNG and CSV files are allowed."
+				"Invalid file type. Only PDF, JPEG, PNG, xlsx and CSV files are allowed."
 			),
 			false
 		);

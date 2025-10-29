@@ -492,6 +492,20 @@ class Client {
 			throw error;
 		}
 	}
+
+	static async getClientByPhoneAndUserId(clientPhone, userId){
+		const query = `
+			SELECT c.*
+			FROM clients c
+			WHERE 
+				c.phone = $1
+			AND
+				c.user_id = $2
+		`;
+
+		const result = await db.query(query, [clientPhone, userId]);
+		return result.rows[0] || null;
+	}
 }
 
 module.exports = Client;

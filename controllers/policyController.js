@@ -1,4 +1,5 @@
 const Policy = require('../models/policies');
+const Client = require("../models/client");
 const PolicyTypes = require('../models/policyType');
 const { parseInputFile, cleanValue } = require('../utils/helpers');
 
@@ -17,6 +18,7 @@ const importPoliciesFromCsv = async (req, res) => {
     }
 
     const policy_type_id = parseInt(req.params.policy_type_id);
+    const user_id = req.user.id;
 
     const allPolicies = await PolicyTypes.findAll()
 
@@ -40,7 +42,22 @@ const importPoliciesFromCsv = async (req, res) => {
       console.log('Processing record:', JSON.stringify(record, null, 2));
       
       const policyNumber = cleanValue(record.policy_num);
-      const clientId = cleanValue(record.client_id);
+      const clientPhone = cleanValue(record.client_phone);
+
+      const clientData = await Client.getClientByPhoneAndUserId(clientPhone, user_id);
+
+      if(!clientData){
+        errors.push({
+					data: {
+						clientPhone,
+					},
+					error: "Client not found!!",
+				});
+        continue
+      }
+
+      const clientId = clientData.id
+
 
       try {
         // Check for duplicate policy by policy number

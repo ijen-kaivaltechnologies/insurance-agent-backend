@@ -369,19 +369,21 @@ class Policy {
 		}
 	}
 
-	static async getExpiringPoliciesOfUser(user_id="", days = 30) {
+	static async getExpiringPoliciesOfUser(user_id="", policyTypeId=0, days = 30) {
 		const nDays = parseInt(days);
 		
 		const q = ` SELECT * FROM policies 
 					WHERE 
 						end_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '${nDays} ${
-							nDays > 1 ? "days" : "day"
-						}' 
+			nDays > 1 ? "days" : "day"
+		}' 
 					AND 
 						user_id=$1
+					AND
+						policy_type_id = $2
 					ORDER BY end_date DESC`;
 		try {
-			const result = await db.query(q, [user_id]);
+			const result = await db.query(q, [user_id, policyTypeId]);
 			return result.rows;
 		} catch (error) {
 			throw error;

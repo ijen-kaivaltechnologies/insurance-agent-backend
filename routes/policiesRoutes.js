@@ -103,14 +103,25 @@ router.get("/expiring", auth, async (req, res) => {
 	try {
 
 		let intervalInDays = parseInt(req.query.interval) //in days
+		let policyTypeId = req.query.policy_type_id
+			? parseInt(req.query.policy_type_id)
+			: null;
+
 		const userId = req.user.id;
 
 		if (isNaN(intervalInDays)) {
 			intervalInDays = 30;
 		}
 
+		if (policyTypeId && isNaN(policyTypeId)) {
+			return res
+				.status(400)
+				.json({ error: "Invalid policy_type_id parameter" });
+		}
+
 		const policies = await Policy.getExpiringPoliciesOfUser(
 			userId,
+			policyTypeId,
 			intervalInDays
 		);
 		res.json(policies);
